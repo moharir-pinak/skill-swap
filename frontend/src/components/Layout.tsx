@@ -1,205 +1,155 @@
-import { Fragment, useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Dialog, Transition } from '@headlessui/react';
-import {
-  Bars3Icon,
-  XMarkIcon,
-  HomeIcon,
-  UserIcon,
-  ChatBubbleLeftRightIcon,
-  UsersIcon,
-  ArrowLeftOnRectangleIcon,
-} from '@heroicons/react/24/outline';
+import { useState } from 'react';
+import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
+import { Bars3Icon } from '@heroicons/react/24/outline';
 
-const navigation = [
-  { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Profile', href: '/profile', icon: UserIcon },
-  { name: 'Skill Matching', href: '/matching', icon: UsersIcon },
-  { name: 'Chat', href: '/chat', icon: ChatBubbleLeftRightIcon },
-];
-
-interface LayoutProps {
-  children: React.ReactNode;
+interface User {
+  id: number;
+  email: string;
+  username: string;
+  profile_picture?: string;
 }
 
-export default function Layout({ children }: LayoutProps) {
+function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { user, logout } = useAuthStore();
   const location = useLocation();
-  const navigate = useNavigate();
-  const { logout, user } = useAuthStore();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  const navigation = [
+    { name: 'Skills', href: '/', current: location.pathname === '/' },
+    { name: 'Profile', href: '/profile', current: location.pathname === '/profile' },
+    { name: 'Skill Matching', href: '/matching', current: location.pathname === '/matching' },
+    { name: 'Chat', href: '/chat', current: location.pathname === '/chat' },
+  ];
 
   return (
-    <div>
-      <Transition.Root show={sidebarOpen} as={Fragment}>
-        <Dialog as="div" className="relative z-50 lg:hidden" onClose={setSidebarOpen}>
-          <Transition.Child
-            as={Fragment}
-            enter="transition-opacity ease-linear duration-300"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="transition-opacity ease-linear duration-300"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-gray-900/80" />
-          </Transition.Child>
-
-          <div className="fixed inset-0 flex">
-            <Transition.Child
-              as={Fragment}
-              enter="transition ease-in-out duration-300 transform"
-              enterFrom="-translate-x-full"
-              enterTo="translate-x-0"
-              leave="transition ease-in-out duration-300 transform"
-              leaveFrom="translate-x-0"
-              leaveTo="-translate-x-full"
-            >
-              <Dialog.Panel className="relative mr-16 flex w-full max-w-xs flex-1">
-                <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-4 ring-1 ring-white/10">
-                  <div className="flex h-16 shrink-0 items-center">
+    <div className="min-h-screen bg-gray-100">
+      {/* Mobile sidebar */}
+      <div className={`fixed inset-0 z-40 lg:hidden ${sidebarOpen ? '' : 'hidden'}`}>
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-75" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-y-0 left-0 flex w-64 flex-col bg-white">
+          {/* Sidebar content */}
+          <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-white">
+            <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
+              <div className="flex flex-shrink-0 items-center px-4">
+                <img className="h-8 w-auto" src="/logo.png" alt="Skill Swap" />
+              </div>
+              <nav className="mt-5 flex-1 space-y-1 bg-white px-2">
+                {navigation.map((item) => (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className={`${
+                      item.current
+                        ? 'bg-gray-100 text-gray-900'
+                        : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    } group flex items-center rounded-md px-2 py-2 text-sm font-medium`}
+                  >
+                    {item.name}
+                  </Link>
+                ))}
+              </nav>
+            </div>
+            <div className="flex flex-shrink-0 border-t border-gray-200 p-4">
+              <div className="group block w-full flex-shrink-0">
+                <div className="flex items-center">
+                  <div>
                     <img
-                      className="h-8 w-auto"
-                      src="/logo.svg"
-                      alt="Skill Swap"
+                      className="inline-block h-9 w-9 rounded-full"
+                      src={user?.profile_picture || '/default-avatar.png'}
+                      alt=""
                     />
                   </div>
-                  <nav className="flex flex-1 flex-col">
-                    <ul role="list" className="flex flex-1 flex-col gap-y-7">
-                      <li>
-                        <ul role="list" className="-mx-2 space-y-1">
-                          {navigation.map((item) => (
-                            <li key={item.name}>
-                              <Link
-                                to={item.href}
-                                className={`
-                                  group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6
-                                  ${
-                                    location.pathname === item.href
-                                      ? 'bg-gray-800 text-white'
-                                      : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                                  }
-                                `}
-                              >
-                                <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
-                                {item.name}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </li>
-                      <li className="mt-auto">
-                        <button
-                          onClick={handleLogout}
-                          className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-400 hover:bg-gray-800 hover:text-white"
-                        >
-                          <ArrowLeftOnRectangleIcon
-                            className="h-6 w-6 shrink-0"
-                            aria-hidden="true"
-                          />
-                          Logout
-                        </button>
-                      </li>
-                    </ul>
-                  </nav>
+                  <div className="ml-3">
+                    <p className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
+                      {user?.username}
+                    </p>
+                    <button
+                      onClick={logout}
+                      className="text-xs font-medium text-gray-500 group-hover:text-gray-700"
+                    >
+                      Sign out
+                    </button>
+                  </div>
                 </div>
-              </Dialog.Panel>
-            </Transition.Child>
+              </div>
+            </div>
           </div>
-        </Dialog>
-      </Transition.Root>
-
-      {/* Static sidebar for desktop */}
-      <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-72 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-gray-900 px-6 pb-4">
-          <div className="flex h-16 shrink-0 items-center">
-            <img
-              className="h-8 w-auto"
-              src="/logo.svg"
-              alt="Skill Swap"
-            />
-          </div>
-          <nav className="flex flex-1 flex-col">
-            <ul role="list" className="flex flex-1 flex-col gap-y-7">
-              <li>
-                <ul role="list" className="-mx-2 space-y-1">
-                  {navigation.map((item) => (
-                    <li key={item.name}>
-                      <Link
-                        to={item.href}
-                        className={`
-                          group flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6
-                          ${
-                            location.pathname === item.href
-                              ? 'bg-gray-800 text-white'
-                              : 'text-gray-400 hover:text-white hover:bg-gray-800'
-                          }
-                        `}
-                      >
-                        <item.icon className="h-6 w-6 shrink-0" aria-hidden="true" />
-                        {item.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </li>
-              <li className="mt-auto">
-                <button
-                  onClick={handleLogout}
-                  className="group -mx-2 flex gap-x-3 rounded-md p-2 text-sm font-semibold leading-6 text-gray-400 hover:bg-gray-800 hover:text-white"
-                >
-                  <ArrowLeftOnRectangleIcon
-                    className="h-6 w-6 shrink-0"
-                    aria-hidden="true"
-                  />
-                  Logout
-                </button>
-              </li>
-            </ul>
-          </nav>
         </div>
       </div>
 
-      <div className="lg:pl-72">
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
+      {/* Static sidebar for desktop */}
+      <div className="hidden lg:fixed lg:inset-y-0 lg:flex lg:w-64 lg:flex-col">
+        <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-white">
+          <div className="flex flex-1 flex-col overflow-y-auto pt-5 pb-4">
+            <div className="flex flex-shrink-0 items-center px-4">
+              <img className="h-8 w-auto" src="/logo.png" alt="Skill Swap" />
+            </div>
+            <nav className="mt-5 flex-1 space-y-1 bg-white px-2">
+              {navigation.map((item) => (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className={`${
+                    item.current
+                      ? 'bg-gray-100 text-gray-900'
+                      : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                  } group flex items-center rounded-md px-2 py-2 text-sm font-medium`}
+                >
+                  {item.name}
+                </Link>
+              ))}
+            </nav>
+          </div>
+          <div className="flex flex-shrink-0 border-t border-gray-200 p-4">
+            <div className="group block w-full flex-shrink-0">
+              <div className="flex items-center">
+                <div>
+                  <img
+                    className="inline-block h-9 w-9 rounded-full"
+                    src={user?.profile_picture || '/default-avatar.png'}
+                    alt=""
+                  />
+                </div>
+                <div className="ml-3">
+                  <p className="text-sm font-medium text-gray-700 group-hover:text-gray-900">
+                    {user?.username}
+                  </p>
+                  <button
+                    onClick={logout}
+                    className="text-xs font-medium text-gray-500 group-hover:text-gray-700"
+                  >
+                    Sign out
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main content */}
+      <div className="flex flex-1 flex-col lg:pl-64">
+        <div className="sticky top-0 z-10 bg-white pl-1 pt-1 sm:pl-3 sm:pt-3 lg:hidden">
           <button
             type="button"
-            className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
+            className="-ml-0.5 -mt-0.5 inline-flex h-12 w-12 items-center justify-center rounded-md text-gray-500 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-500"
             onClick={() => setSidebarOpen(true)}
           >
             <span className="sr-only">Open sidebar</span>
             <Bars3Icon className="h-6 w-6" aria-hidden="true" />
           </button>
-
-          {/* Separator */}
-          <div className="h-6 w-px bg-gray-900/10 lg:hidden" aria-hidden="true" />
-
-          <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
-            <div className="flex items-center gap-x-4 lg:gap-x-6">
-              {/* User menu */}
-              <div className="relative">
-                <span className="inline-flex items-center gap-x-1.5 text-sm font-semibold leading-6 text-gray-900">
-                  <img
-                    className="h-8 w-8 rounded-full bg-gray-50"
-                    src={user?.profile_picture || '/default-avatar.png'}
-                    alt=""
-                  />
-                  <span className="hidden lg:flex">{user?.username}</span>
-                </span>
-              </div>
+        </div>
+        <main className="flex-1">
+          <div className="py-6">
+            <div className="mx-auto max-w-7xl px-4 sm:px-6 md:px-8">
+              <Outlet />
             </div>
           </div>
-        </div>
-
-        <main className="py-10">
-          <div className="px-4 sm:px-6 lg:px-8">{children}</div>
         </main>
       </div>
     </div>
   );
-} 
+}
+
+export default Layout; 
