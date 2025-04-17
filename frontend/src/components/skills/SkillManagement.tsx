@@ -1,66 +1,96 @@
 import { useState } from 'react';
-import SkillList from './SkillList';
-import UserSkillList from './UserSkillList';
+import { useSkillStore } from '../../stores/skillStore';
 import AddUserSkill from './AddUserSkill';
-import { Dialog } from '@headlessui/react';
-import { XMarkIcon } from '@heroicons/react/24/outline';
 
 export default function SkillManagement() {
-  const [selectedSkillId, setSelectedSkillId] = useState<number | null>(null);
-  const [isAddSkillModalOpen, setIsAddSkillModalOpen] = useState(false);
+  const { skills, userSkills, deleteUserSkill } = useSkillStore();
+  const [selectedSkill, setSelectedSkill] = useState<number | null>(null);
+  const [showAddSkill, setShowAddSkill] = useState(false);
 
   const handleAddSkill = (skillId: number) => {
-    setSelectedSkillId(skillId);
-    setIsAddSkillModalOpen(true);
+    setSelectedSkill(skillId);
+    setShowAddSkill(true);
   };
 
-  const handleCloseModal = () => {
-    setIsAddSkillModalOpen(false);
-    setSelectedSkillId(null);
+  const handleCloseAddSkill = () => {
+    setShowAddSkill(false);
+    setSelectedSkill(null);
+  };
+
+  const handleSkillAdded = () => {
+    handleCloseAddSkill();
   };
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-lg font-medium text-gray-900">My Skills</h2>
-        <UserSkillList />
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl font-bold text-gray-900">Manage Skills</h2>
+        <button
+          onClick={() => setShowAddSkill(true)}
+          className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700"
+        >
+          Add New Skill
+        </button>
       </div>
 
-      <div>
-        <h2 className="text-lg font-medium text-gray-900">Available Skills</h2>
-        <SkillList onAddSkill={handleAddSkill} />
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {skills.map((skill) => (
+          <div key={skill.id} className="bg-white p-6 rounded-lg shadow">
+            <h3 className="text-lg font-medium text-gray-900">{skill.name}</h3>
+            <p className="mt-2 text-sm text-gray-500">{skill.description}</p>
+            <div className="mt-4 flex justify-end space-x-2">
+              {!userSkills.some((us) => us.skill === skill.id) ? (
+                <button
+                  onClick={() => handleAddSkill(skill.id)}
+                  className="px-3 py-1 text-sm bg-primary-600 text-white rounded-md hover:bg-primary-700"
+                >
+                  Add
+                </button>
+              ) : (
+                <button
+                  onClick={() => deleteUserSkill(skill.id)}
+                  className="px-3 py-1 text-sm bg-red-600 text-white rounded-md hover:bg-red-700"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
 
-      <Dialog
-        open={isAddSkillModalOpen}
-        onClose={handleCloseModal}
-        className="relative z-50"
-      >
-        <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="mx-auto max-w-sm rounded bg-white p-6">
+      {showAddSkill && selectedSkill && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-lg w-full max-w-md">
             <div className="flex justify-between items-center mb-4">
-              <Dialog.Title className="text-lg font-medium text-gray-900">
-                Add Skill
-              </Dialog.Title>
+              <h3 className="text-lg font-medium text-gray-900">Add Skill</h3>
               <button
-                onClick={handleCloseModal}
+                onClick={handleCloseAddSkill}
                 className="text-gray-400 hover:text-gray-500"
               >
-                <XMarkIcon className="h-6 w-6" />
+                <span className="sr-only">Close</span>
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
               </button>
             </div>
-
-            {selectedSkillId && (
-              <AddUserSkill
-                skillId={selectedSkillId}
-                onClose={handleCloseModal}
-              />
-            )}
-          </Dialog.Panel>
+            <AddUserSkill
+              skillId={selectedSkill}
+              onSuccess={handleSkillAdded}
+            />
+          </div>
         </div>
-      </Dialog>
+      )}
     </div>
   );
 } 

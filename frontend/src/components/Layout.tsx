@@ -3,13 +3,6 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import { useAuthStore } from '../stores/authStore';
 import { Bars3Icon } from '@heroicons/react/24/outline';
 
-interface User {
-  id: number;
-  email: string;
-  username: string;
-  profile_picture?: string;
-}
-
 function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user, logout } = useAuthStore();

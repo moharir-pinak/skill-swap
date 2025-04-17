@@ -6,6 +6,7 @@ interface AuthState {
     id: number;
     email: string;
     username: string;
+    profile_picture?: string;
   } | null;
   isAuthenticated: boolean;
   isLoading: boolean;
