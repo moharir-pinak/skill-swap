@@ -2,6 +2,9 @@
 # exit on error
 set -o errexit
 
+# Set Python path
+export PYTHONPATH=$PYTHONPATH:$(pwd)
+
 # Install Python dependencies
 pip install -r requirements.txt
 
