@@ -1,0 +1,2 @@
+web: gunicorn skillswap.wsgi:application
+worker: python manage.py runworker 
